@@ -3,7 +3,6 @@ from dataclasses import asdict
 from typing import List, Optional
 
 import graphene
-from django.conf import settings
 from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
@@ -340,6 +339,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if address is not None:
             country_code = address.country
 
+        global_quantity_limit_per_checkout = (
+            info.context.site.settings.limit_quantity_per_checkout
+        )
+
         if root.node.is_preorder_active():
             variant = root.node
             channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
@@ -354,7 +357,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                     return min(
                         channel_listing.preorder_quantity_threshold
                         - channel_listing.preorder_quantity_allocated,
-                        settings.MAX_CHECKOUT_LINE_QUANTITY,
+                        global_quantity_limit_per_checkout,
                     )
                 if variant.preorder_global_threshold is not None:
                     variant_channel_listings = VariantChannelListingByVariantIdLoader(
@@ -363,24 +366,24 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
                     def calculate_available_global(variant_channel_listings):
                         if not variant_channel_listings:
-                            return settings.MAX_CHECKOUT_LINE_QUANTITY
+                            return global_quantity_limit_per_checkout
                         global_sold_units = sum(
                             channel_listing.preorder_quantity_allocated
                             for channel_listing in variant_channel_listings
                         )
                         return min(
                             variant.preorder_global_threshold - global_sold_units,
-                            settings.MAX_CHECKOUT_LINE_QUANTITY,
+                            global_quantity_limit_per_checkout,
                         )
 
                     return variant_channel_listings.then(calculate_available_global)
 
-                return settings.MAX_CHECKOUT_LINE_QUANTITY
+                return global_quantity_limit_per_checkout
 
             return channel_listing.then(calculate_available_per_channel)
 
         if not root.node.track_inventory:
-            return settings.MAX_CHECKOUT_LINE_QUANTITY
+            return global_quantity_limit_per_checkout
 
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
