@@ -180,7 +180,7 @@ def check_lines_quantity(
                 }
             )
 
-        if quantity > available_quantity:
+        if available_quantity is not None and quantity > available_quantity:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
