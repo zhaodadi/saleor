@@ -258,7 +258,8 @@ def _create_lines_for_order(
         country_code,
         quantities,
         checkout_info.channel.slug,
-        additional_warehouse_lookup,
+        global_quantity_limit=None,
+        additional_filter_lookup=additional_warehouse_lookup,
     )
 
     return [

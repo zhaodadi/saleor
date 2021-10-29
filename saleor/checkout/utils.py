@@ -145,6 +145,7 @@ def add_variants_to_checkout(
     variants,
     quantities,
     channel_slug,
+    global_quantity_limit,
     skip_stock_check=False,
     replace=False,
     replace_reservations=False,
@@ -164,6 +165,7 @@ def add_variants_to_checkout(
             country_code,
             quantities,
             channel_slug,
+            global_quantity_limit,
             check_reservations=bool(reservation_length),
         )
 

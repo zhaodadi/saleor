@@ -697,11 +697,14 @@ def test_update_checkout_lines_with_reservations(
         ]
     )
 
+    global_quantity_limit = site_settings_with_reservations.limit_quantity_per_checkout
+
     add_variants_to_checkout(
         checkout,
         variants,
         [2] * 10,
         channel_USD.slug,
+        global_quantity_limit=global_quantity_limit,
         replace_reservations=True,
         reservation_length=5,
     )
